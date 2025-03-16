@@ -1,0 +1,177 @@
+[
+  {
+    "category": "Genel Kültür",
+    "difficulty": "Kolay",
+    "question": "Türkiye'nin başkenti hangi şehirdir?",
+    "options": ["İstanbul", "Ankara", "İzmir", "Antalya"],
+    "correct_answer": "Ankara"
+  },
+  {
+    "category": "Genel Kültür",
+    "difficulty": "Kolay",
+    "question": "Türk bayrağında hangi renk kullanılmaz?",
+    "options": ["Kırmızı", "Beyaz", "Mavi", "Yeşil"],
+    "correct_answer": "Mavi"
+  },
+  {
+    "category": "Genel Kültür",
+    "difficulty": "Orta",
+    "question": "Nobel Ödülleri hangi ülkede verilmektedir?",
+    "options": ["ABD", "İngiltere", "İsveç", "Fransa"],
+    "correct_answer": "İsveç"
+  },
+  {
+    "category": "Genel Kültür",
+    "difficulty": "Orta",
+    "question": "Hangi hayvan memeli değildir?",
+    "options": ["Yarasa", "Penguen", "Timsah", "Balina"],
+    "correct_answer": "Timsah"
+  },
+  {
+    "category": "Genel Kültür",
+    "difficulty": "Zor",
+    "question": "Bir yıl kaç saniyedir?",
+    "options": ["31,536,000", "31,556,926", "30,758,400", "32,850,000"],
+    "correct_answer": "31,536,000"
+  },
+  {
+    "category": "Bilim",
+    "difficulty": "Kolay",
+    "question": "Su molekülünün formülü nedir?",
+    "options": ["H2O", "CO2", "O2", "H2SO4"],
+    "correct_answer": "H2O"
+  },
+  {
+    "category": "Bilim",
+    "difficulty": "Kolay",
+    "question": "Yerçekimi teorisi hangi bilim insanı tarafından geliştirilmiştir?",
+    "options": ["Albert Einstein", "Isaac Newton", "Galileo Galilei", "Nikola Tesla"],
+    "correct_answer": "Isaac Newton"
+  },
+  {
+    "category": "Bilim",
+    "difficulty": "Orta",
+    "question": "Periyodik tabloda en çok element hangi grupta bulunur?",
+    "options": ["Alkali Metaller", "Halojenler", "Geçiş Metalleri", "Soy Gazlar"],
+    "correct_answer": "Geçiş Metalleri"
+  },
+  {
+    "category": "Bilim",
+    "difficulty": "Orta",
+    "question": "DNA'nın açılımı nedir?",
+    "options": ["Deoksiribonükleik Asit", "Deoksinitrijen Asit", "Deojenasit", "Doğal Nükleik Asit"],
+    "correct_answer": "Deoksiribonükleik Asit"
+  },
+  {
+    "category": "Bilim",
+    "difficulty": "Zor",
+    "question": "Kuantum fiziğinin temelini atan bilim insanı kimdir?",
+    "options": ["Max Planck", "Marie Curie", "Werner Heisenberg", "Niels Bohr"],
+    "correct_answer": "Max Planck"
+  },
+  {
+    "category": "Tarih",
+    "difficulty": "Kolay",
+    "question": "İstanbul'un fethi hangi yılda gerçekleşmiştir?",
+    "options": ["1453", "1299", "1517", "1683"],
+    "correct_answer": "1453"
+  },
+  {
+    "category": "Tarih",
+    "difficulty": "Kolay",
+    "question": "Türkiye Cumhuriyeti hangi tarihte ilan edilmiştir?",
+    "options": ["29 Ekim 1923", "23 Nisan 1920", "30 Ağustos 1922", "19 Mayıs 1919"],
+    "correct_answer": "29 Ekim 1923"
+  },
+  {
+    "category": "Tarih",
+    "difficulty": "Orta",
+    "question": "Fransız Devrimi hangi yılda gerçekleşmiştir?",
+    "options": ["1789", "1776", "1804", "1812"],
+    "correct_answer": "1789"
+  },
+  {
+    "category": "Tarih",
+    "difficulty": "Orta",
+    "question": "Çanakkale Savaşı hangi yıllar arasında gerçekleşmiştir?",
+    "options": ["1914-1915", "1915-1916", "1916-1917", "1917-1918"],
+    "correct_answer": "1915-1916"
+  },
+  {
+    "category": "Tarih",
+    "difficulty": "Zor",
+    "question": "Magna Carta hangi yılda imzalanmıştır?",
+    "options": ["1215", "1315", "1415", "1515"],
+    "correct_answer": "1215"
+  },
+  {
+    "category": "Spor",
+    "difficulty": "Kolay",
+    "question": "Bir futbol takımında kaç oyuncu bulunur?",
+    "options": ["9", "10", "11", "12"],
+    "correct_answer": "11"
+  },
+  {
+    "category": "Spor",
+    "difficulty": "Kolay",
+    "question": "Voleybolda bir takım kaç sayı alınca seti kazanır?",
+    "options": ["15", "21", "25", "30"],
+    "correct_answer": "25"
+  },
+  {
+    "category": "Spor",
+    "difficulty": "Orta",
+    "question": "Hangi spor dalında 'Grand Slam' turnuvaları düzenlenir?",
+    "options": ["Golf", "Tenis", "Basketbol", "Yüzme"],
+    "correct_answer": "Tenis"
+  },
+  {
+    "category": "Spor",
+    "difficulty": "Orta",
+    "question": "NBA'de en çok şampiyon olan takım hangisidir?",
+    "options": ["Los Angeles Lakers", "Chicago Bulls", "Boston Celtics", "Golden State Warriors"],
+    "correct_answer": "Boston Celtics"
+  },
+  {
+    "category": "Spor",
+    "difficulty": "Zor",
+    "question": "İlk modern olimpiyat hangi yılda ve nerede düzenlenmiştir?",
+    "options": ["1896 Atina", "1900 Paris", "1904 St. Louis", "1908 Londra"],
+    "correct_answer": "1896 Atina"
+  },
+  {
+    "category": "Sanat",
+    "difficulty": "Kolay",
+    "question": "Mona Lisa'nın ressamı kimdir?",
+    "options": ["Leonardo da Vinci", "Michelangelo", "Pablo Picasso", "Vincent van Gogh"],
+    "correct_answer": "Leonardo da Vinci"
+  },
+  {
+    "category": "Sanat",
+    "difficulty": "Kolay",
+    "question": "Hangisi bir müzik enstrümanı değildir?",
+    "options": ["Keman", "Piyano", "Obua", "Palette"],
+    "correct_answer": "Palette"
+  },
+  {
+    "category": "Sanat",
+    "difficulty": "Orta",
+    "question": "'Çığlık' tablosunun ressamı kimdir?",
+    "options": ["Edvard Munch", "Salvador Dali", "Rembrandt", "Claude Monet"],
+    "correct_answer": "Edvard Munch"
+  },
+  {
+    "category": "Sanat",
+    "difficulty": "Orta",
+    "question": "Hangisi bir Barok dönem bestecisi değildir?",
+    "options": ["Johann Sebastian Bach", "George Frideric Handel", "Ludwig van Beethoven", "Antonio Vivaldi"],
+    "correct_answer": "Ludwig van Beethoven"
+  },
+  {
+    "category": "Sanat",
+    "difficulty": "Zor",
+    "question": "Dadaizm sanat akımı hangi yılda başlamıştır?",
+    "options": ["1905", "1916", "1923", "1935"],
+    "correct_answer": "1916"
+  }
+] 
