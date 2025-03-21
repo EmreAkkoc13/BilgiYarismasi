@@ -1,2 +1,6 @@
-tkinter>=8.6.0
-sqlite3>=3.35.0 
+flask==3.0.2
+flask-socketio==5.3.6
+python-socketio==5.11.1
+requests==2.32.3
+python-engineio==4.9.0
+eventlet==0.35.2 
