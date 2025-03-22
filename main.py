@@ -7,6 +7,8 @@ import json
 import os
 import sqlite3
 from datetime import datetime
+import random
+import socketio
 
 class BilgiYarismasi:
     def __init__(self, root):
@@ -14,6 +16,12 @@ class BilgiYarismasi:
         self.root.title("Bilgi Yarışması")
         self.root.geometry("800x600")
         self.root.resizable(True, True)
+        
+        # Ağ bağlantısı için değişkenler
+        self.connected = False
+        self.room_code = None
+        self.teams = []
+        self.is_host = False
         
         # Tema değişkenleri - Sadece gündüz modu
         self.theme = {
@@ -44,6 +52,17 @@ class BilgiYarismasi:
         
         # Ana ekranı göster
         self.show_main_menu()
+        
+        # Socket.IO bağlantısı
+        self.sio = socketio.Client()
+        try:
+            self.sio.connect('http://192.168.1.102:8080')  # Gateway IP adresi
+            self.connected = True
+            print("Sunucuya başarıyla bağlanıldı.")
+        except Exception as e:
+            messagebox.showwarning("Bağlantı Hatası", "Sunucuya bağlanılamadı. Çevrimdışı modda devam ediliyor.")
+            print(f"Bağlantı hatası: {e}")
+            self.connected = False
     
     def apply_theme(self):
         """Temayı uygular."""
@@ -175,7 +194,11 @@ class BilgiYarismasi:
         team_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         # Başlık
-        title_label = ttk.Label(team_frame, text="TAKIM İSMİNİZİ GİRİN", font=("Arial", 18, "bold"))
+        title_label = ttk.Label(
+            team_frame, 
+            text="TAKIM İSMİNİZİ GİRİN", 
+            font=("Arial", 18, "bold")
+        )
         title_label.pack(pady=30)
         
         # Takım ismi girişi
@@ -199,34 +222,246 @@ class BilgiYarismasi:
         name_entry.pack(side="left", padx=5)
         name_entry.focus()
         
-        # Devam butonu
-        continue_btn = ttk.Button(
-            team_frame, 
-            text="Devam Et", 
-            command=self.validate_team_name,
+        # Oda oluştur/katıl seçenekleri
+        options_frame = ttk.Frame(team_frame)
+        options_frame.pack(pady=20)
+        
+        create_btn = ttk.Button(
+            options_frame,
+            text="Oda Oluştur",
+            command=self.create_room,
             width=20
         )
-        continue_btn.pack(pady=20)
+        create_btn.pack(pady=10)
+        
+        # Oda kodu girişi
+        join_frame = ttk.Frame(team_frame)
+        join_frame.pack(pady=10)
+        
+        code_label = ttk.Label(
+            join_frame,
+            text="Oda Kodu:",
+            font=("Arial", 12)
+        )
+        code_label.pack(side="left", padx=5)
+        
+        self.room_code_var = tk.StringVar()
+        code_entry = ttk.Entry(
+            join_frame,
+            textvariable=self.room_code_var,
+            width=10,
+            font=("Arial", 12)
+        )
+        code_entry.pack(side="left", padx=5)
+        
+        join_btn = ttk.Button(
+            join_frame,
+            text="Odaya Katıl",
+            command=self.join_room,
+            width=15
+        )
+        join_btn.pack(side="left", padx=5)
         
         # Geri butonu
         back_btn = ttk.Button(
-            team_frame, 
-            text="Ana Menüye Dön", 
+            team_frame,
+            text="Ana Menüye Dön",
             command=self.show_main_menu,
             width=20
         )
-        back_btn.pack(pady=10)
-    
-    def validate_team_name(self):
-        """Takım ismini doğrular ve oyunu başlatır."""
+        back_btn.pack(pady=20)
+
+    def create_room(self):
+        """Yeni bir oda oluşturur ve lobi ekranına geçer."""
         team_name = self.team_name.get().strip()
+        if not team_name:
+            messagebox.showwarning("Uyarı", "Lütfen bir takım ismi girin.")
+            return
+            
+        # TODO: Sunucu bağlantısı yapılacak
+        self.is_host = True
+        self.room_code = "".join([str(random.randint(0, 9)) for _ in range(6)])  # Geçici kod
+        self.teams = [{"name": team_name, "is_host": True, "ready": False}]
+        self.show_lobby()
+
+    def join_room(self):
+        """Var olan bir odaya katılır."""
+        team_name = self.team_name.get().strip()
+        room_code = self.room_code_var.get().strip()
         
         if not team_name:
             messagebox.showwarning("Uyarı", "Lütfen bir takım ismi girin.")
             return
+            
+        if not room_code:
+            messagebox.showwarning("Uyarı", "Lütfen oda kodunu girin.")
+            return
+            
+        # TODO: Sunucu bağlantısı yapılacak
+        self.room_code = room_code
+        self.teams = [
+            {"name": "Ev Sahibi Takım", "is_host": True, "ready": False},
+            {"name": team_name, "is_host": False, "ready": False}
+        ]
+        self.show_lobby()
+
+    def show_lobby(self):
+        """Lobi ekranını gösterir."""
+        # Önceki widget'ları temizle
+        for widget in self.root.winfo_children():
+            widget.destroy()
         
-        # Oyunu başlat
+        # Lobi çerçevesi
+        lobby_frame = ttk.Frame(self.root)
+        lobby_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Üst bilgi çerçevesi
+        info_frame = ttk.Frame(lobby_frame)
+        info_frame.pack(fill="x", pady=10)
+        
+        # Oda kodu
+        code_label = ttk.Label(
+            info_frame,
+            text=f"Oda Kodu: {self.room_code}",
+            font=("Arial", 14, "bold")
+        )
+        code_label.pack(side="left", padx=5)
+        
+        # Kopyala butonu
+        copy_btn = ttk.Button(
+            info_frame,
+            text="Kopyala",
+            command=lambda: self.root.clipboard_append(self.room_code),
+            width=10
+        )
+        copy_btn.pack(side="left", padx=5)
+        
+        # Takımlar listesi
+        teams_frame = ttk.LabelFrame(lobby_frame, text="Takımlar")
+        teams_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Takımları listele
+        self.teams_list = ttk.Treeview(
+            teams_frame,
+            columns=("Takım", "Durum"),
+            show="headings",
+            height=10
+        )
+        
+        self.teams_list.heading("Takım", text="Takım")
+        self.teams_list.heading("Durum", text="Durum")
+        
+        self.teams_list.column("Takım", width=200)
+        self.teams_list.column("Durum", width=100)
+        
+        for team in self.teams:
+            status = "Hazır" if team["ready"] else "Bekliyor"
+            host_mark = "👑 " if team["is_host"] else ""
+            self.teams_list.insert("", "end", values=(f"{host_mark}{team['name']}", status))
+        
+        self.teams_list.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Alt butonlar çerçevesi
+        buttons_frame = ttk.Frame(lobby_frame)
+        buttons_frame.pack(fill="x", pady=10)
+        
+        # Hazır/Başlat butonu
+        if self.is_host:
+            start_btn = ttk.Button(
+                buttons_frame,
+                text="Oyunu Başlat",
+                command=self.start_game_from_lobby,
+                width=20
+            )
+            start_btn.pack(side="left", padx=5)
+        else:
+            ready_btn = ttk.Button(
+                buttons_frame,
+                text="Hazır",
+                command=self.toggle_ready,
+                width=20
+            )
+            ready_btn.pack(side="left", padx=5)
+        
+        # Odadan Ayrıl butonu
+        leave_btn = ttk.Button(
+            buttons_frame,
+            text="Odadan Ayrıl",
+            command=self.leave_room,
+            width=20
+        )
+        leave_btn.pack(side="right", padx=5)
+        
+        # Sohbet alanı
+        chat_frame = ttk.LabelFrame(lobby_frame, text="Sohbet")
+        chat_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        self.chat_text = tk.Text(chat_frame, height=8, width=50)
+        self.chat_text.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        chat_input_frame = ttk.Frame(chat_frame)
+        chat_input_frame.pack(fill="x", padx=5, pady=5)
+        
+        self.chat_input = ttk.Entry(chat_input_frame)
+        self.chat_input.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        send_btn = ttk.Button(
+            chat_input_frame,
+            text="Gönder",
+            command=self.send_chat_message,
+            width=10
+        )
+        send_btn.pack(side="right")
+        
+        # Lobi güncellemelerini başlat
+        self.update_lobby()
+
+    def toggle_ready(self):
+        """Hazır durumunu değiştirir."""
+        # TODO: Sunucuya hazır durumu gönderilecek
+        for team in self.teams:
+            if team["name"] == self.team_name.get():
+                team["ready"] = not team["ready"]
+                break
+        self.update_lobby()
+
+    def start_game_from_lobby(self):
+        """Lobiden oyunu başlatır."""
+        # Tüm oyuncuların hazır olup olmadığını kontrol et
+        if not all(team["ready"] or team["is_host"] for team in self.teams):
+            messagebox.showwarning("Uyarı", "Tüm oyuncular hazır değil!")
+            return
+            
+        # TODO: Sunucuya oyun başlatma sinyali gönderilecek
         self.start_game("Genel Kültür")
+
+    def leave_room(self):
+        """Odadan ayrılır."""
+        if messagebox.askyesno("Emin misiniz?", "Odadan ayrılmak istediğinize emin misiniz?"):
+            # TODO: Sunucuya ayrılma sinyali gönderilecek
+            self.show_main_menu()
+
+    def send_chat_message(self):
+        """Sohbet mesajı gönderir."""
+        message = self.chat_input.get().strip()
+        if message:
+            # TODO: Sunucuya mesaj gönderilecek
+            self.chat_text.insert("end", f"{self.team_name.get()}: {message}\n")
+            self.chat_text.see("end")
+            self.chat_input.delete(0, "end")
+
+    def update_lobby(self):
+        """Lobi bilgilerini günceller."""
+        # TODO: Sunucudan güncel bilgileri al
+        # Şimdilik sadece arayüzü güncelle
+        self.teams_list.delete(*self.teams_list.get_children())
+        for team in self.teams:
+            status = "Hazır" if team["ready"] else "Bekliyor"
+            host_mark = "👑 " if team["is_host"] else ""
+            self.teams_list.insert("", "end", values=(f"{host_mark}{team['name']}", status))
+        
+        # Her 1 saniyede bir güncelle
+        self.root.after(1000, self.update_lobby)
     
     def show_category_selection(self):
         """Kategori seçim ekranını gösterir."""

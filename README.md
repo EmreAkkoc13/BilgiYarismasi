@@ -1,47 +1,78 @@
+
+ÖNCE SERVER.PY DOSYASINI ÇALIŞTIR. DAHA SONRA CLİENT.PY CLİENT DOSYASINI CURSOR ÜZERİNDEN AÇMAYIN MASAÜSTÜNE ATIP DOSYA KONUMUNA CMD EKRANINDAN AÇIN ÖRNEK 
+cd\Users\emrea\Desktop
+python client.py 
+
+EĞER IP HATASI GELİRSE CMD YE ipconfig yazıp ipv4 teki ipniz üzerinden kontol edin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Bilgi Yarışması Uygulaması
 
-Bu, Python ile geliştirilmiş bir bilgi yarışması masaüstü uygulamasıdır. Kullanıcılar çeşitli kategorilerde sorulara cevap vererek puan kazanabilir ve yüksek skorlar elde edebilirler.
+Bu proje, gerçek zamanlı çok oyunculu bir bilgi yarışması uygulamasıdır.
 
 ## Özellikler
 
-- Farklı kategorilerde sorular (Genel Kültür, Bilim, Tarih, Spor, Sanat)
-- Zamana karşı yarışma
-- Puanlama sistemi
-- Yüksek skor tablosu
-- Kullanıcı dostu arayüz
-
-## Gereksinimler
-
-- Python 3.8 veya üzeri
-- Tkinter (Python ile genellikle birlikte gelir)
-- SQLite3 (Python ile genellikle birlikte gelir)
+- Oda oluşturma ve katılma
+- Gerçek zamanlı takım listesi güncellemesi
+- Hazır/Hazır Değil durumu
+- Sohbet sistemi
+- Soru ve cevap yönetimi
+- Puan sistemi
 
 ## Kurulum
 
-1. Bu repoyu klonlayın veya ZIP olarak indirin.
-2. Gerekli bağımlılıkları yükleyin:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Uygulamayı çalıştırın:
-   ```
-   python main.py
-   ```
+1. Python 3.x'i yükleyin
+2. Gerekli kütüphaneleri yükleyin:
+```bash
+pip install -r requirements.txt
+```
 
 ## Kullanım
 
-1. Uygulamayı başlattığınızda ana menü görüntülenecektir.
-2. "Oyuna Başla" butonuna tıklayarak kategori seçim ekranına geçebilirsiniz.
-3. Bir kategori seçtikten sonra, sorular gösterilmeye başlayacaktır.
-4. Her soru için 30 saniye süreniz vardır.
-5. Doğru cevaplar için puan kazanırsınız (kalan süreye göre bonus puan eklenir).
-6. Oyun bittiğinde, isminizi girerek skorunuzu kaydedebilirsiniz.
-7. Yüksek skorlar bölümünden en iyi 10 skoru görebilirsiniz.
+1. Sunucuyu başlatın:
+```bash
+python server.py
+```
 
-## Soru Bankası
+2. İstemciyi başlatın:
+```bash
+python client.py
+```
 
-Varsayılan olarak, uygulama 25 adet örnek soru içerir. Kendi sorularınızı eklemek için `questions.json` dosyasını düzenleyebilirsiniz.
+## Gereksinimler
+
+- Python 3.x
+- Flask
+- Flask-SocketIO
+- SQLite3
+- Tkinter (Python ile birlikte gelir)
 
 ## Lisans
 
-Bu proje açık kaynak olarak MIT lisansı altında lisanslanmıştır. 
+Bu proje MIT lisansı altında lisanslanmıştır. 
