@@ -3,6 +3,8 @@
 cd\Users\emrea\Desktop
 python client.py 
 
+EĞER IP HATASI GELİRSE CMD YE ipconfig yazıp ipv4 teki ipniz üzerinden kontol edin
+
 
 
 
