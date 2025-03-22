@@ -27,7 +27,45 @@ class GameRoom:
         self.started = False
         self.current_question = 0
         self.questions = []
-        self.scores = {}
+        self.scores = {host_name: 0}
+        self.answers = {}
+
+    def reset_answers(self):
+        """Tüm takımların cevaplarını sıfırlar."""
+        self.answers = {}
+
+    def submit_answer(self, team_name, answer):
+        """Takımın cevabını kaydeder ve doğruysa puan verir."""
+        if team_name not in self.answers:
+            self.answers[team_name] = answer
+            
+            # İlk kez cevap veriyorsa ve doğruysa puan ver
+            if answer == self.questions[self.current_question]['correct_answer']:
+                self.scores[team_name] = self.scores.get(team_name, 0) + 10
+            
+            return True
+        return False
+
+    def all_teams_answered(self):
+        """Tüm takımlar cevap verdi mi kontrol eder."""
+        return len(self.answers) == len(self.teams)
+
+    def get_next_question(self):
+        """Bir sonraki soruyu döndürür."""
+        self.current_question += 1
+        if self.current_question < len(self.questions):
+            question = self.questions[self.current_question]
+            return {
+                'question': question['question'],
+                'answer_a': question['options'][0],
+                'answer_b': question['options'][1],
+                'answer_c': question['options'][2],
+                'answer_d': question['options'][3],
+                'question_number': self.current_question + 1,
+                'time': 30,
+                'correct_answer': question['correct_answer']
+            }
+        return None
 
 @socketio.on('connect')
 def handle_connect():
@@ -127,8 +165,20 @@ def handle_start_game(data):
             conn.close()
             
             room.questions = questions
+            # İlk soruyu hazırla
+            first_question = {
+                'question': questions[0]['question'],
+                'answer_a': questions[0]['options'][0],
+                'answer_b': questions[0]['options'][1],
+                'answer_c': questions[0]['options'][2],
+                'answer_d': questions[0]['options'][3],
+                'question_number': 1,
+                'time': 30,
+                'correct_answer': questions[0]['correct_answer']
+            }
+            
             emit('game_started', {
-                'first_question': questions[0]
+                'first_question': first_question
             }, room=room_code)
 
 @socketio.on('leave_room')
@@ -162,5 +212,82 @@ def handle_chat_message(data):
             'message': message
         }, room=room_code)
 
+@socketio.on('next_question')
+def handle_next_question():
+    """Bir sonraki soruya geçer."""
+    room_code = sid_to_room.get(request.sid)
+    if room_code and room_code in active_rooms:
+        room = active_rooms[room_code]
+        # Tüm takımların cevaplarını sıfırla
+        room.reset_answers()
+        # Bir sonraki soruyu gönder
+        next_question = room.get_next_question()
+        if next_question:
+            emit('show_question', next_question, room=room_code)
+        else:
+            # Oyun bitti
+            emit('game_over', {'scores': room.scores}, room=room_code)
+
+@socketio.on('time_up')
+def handle_time_up(data):
+    """Süre dolduğunda çalışır."""
+    room_code = data.get('room_code')
+    if room_code in active_rooms:
+        room = active_rooms[room_code]
+        
+        # Doğru cevabı ve skorları göster
+        correct_answer = room.questions[room.current_question]['correct_answer']
+        
+        # Tüm istemcilere sonuçları gönder
+        emit('show_results', {
+            'correct_answer': correct_answer,
+            'scores': room.scores
+        }, room=room_code)
+        
+        # 7 saniye bekle ve sonraki soruya geç
+        socketio.sleep(7)
+        
+        # Sonraki soruya geç
+        next_question = room.get_next_question()
+        if next_question:
+            emit('show_question', next_question, room=room_code)
+        else:
+            # Oyun bitti
+            emit('game_over', {'scores': room.scores}, room=room_code)
+
+@socketio.on('submit_answer')
+def handle_submit_answer(data):
+    """Cevap gönderildiğinde çalışır."""
+    room_code = data.get('room_code')
+    team_name = data.get('team_name')
+    answer = data.get('answer')
+    
+    if room_code in active_rooms:
+        room = active_rooms[room_code]
+        
+        # Takımın cevabını kaydet
+        if room.submit_answer(team_name, answer):
+            # Tüm takımlar cevap verdi mi kontrol et
+            if room.all_teams_answered():
+                # Doğru cevabı ve skorları göster
+                correct_answer = room.questions[room.current_question]['correct_answer']
+                
+                # Tüm istemcilere sonuçları gönder
+                emit('show_results', {
+                    'correct_answer': correct_answer,
+                    'scores': room.scores
+                }, room=room_code)
+                
+                # 7 saniye bekle ve sonraki soruya geç
+                socketio.sleep(7)
+                
+                # Sonraki soruya geç
+                next_question = room.get_next_question()
+                if next_question:
+                    emit('show_question', next_question, room=room_code)
+                else:
+                    # Oyun bitti
+                    emit('game_over', {'scores': room.scores}, room=room_code)
+
 if __name__ == '__main__':
-    socketio.run(app, host='192.168.1.102', port=8080, debug=True) 
+    socketio.run(app, host='192.168.1.103', port=8080, debug=True) 

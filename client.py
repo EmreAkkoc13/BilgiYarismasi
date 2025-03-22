@@ -49,7 +49,7 @@ class BilgiYarismasi:
         
         try:
             # Sunucuya bağlan
-            self.sio.connect('http://192.168.1.102:8080', wait_timeout=10)
+            self.sio.connect('http://192.168.1.103:8080', wait_timeout=10)
             self.connected = True
         except Exception as e:
             print(f"Bağlantı hatası: {str(e)}")
@@ -88,8 +88,23 @@ class BilgiYarismasi:
         
         @self.sio.on('game_started')
         def on_game_started(data):
-            self.questions = [data['first_question']]
-            self.start_game("Genel Kültür")
+            self.show_question(data['first_question'])
+        
+        @self.sio.on('show_question')
+        def on_show_question(data):
+            self.show_question(data)
+        
+        @self.sio.on('show_results')
+        def on_show_results(data):
+            correct_answer = data['correct_answer']
+            scores = data['scores']
+            self.show_results(correct_answer, scores)
+        
+        @self.sio.on('game_over')
+        def on_game_over(data):
+            scores = data['scores']
+            messagebox.showinfo("Oyun Bitti!", f"Final puanları:\n{scores}")
+            self.show_main_menu()
         
         @self.sio.on('new_chat_message')
         def on_new_chat_message(data):
@@ -99,7 +114,6 @@ class BilgiYarismasi:
         
         @self.sio.on('teams_updated')
         def on_teams_updated(data):
-            """Takım listesi güncellendiğinde"""
             print(f"Takımlar güncellendi: {data['teams']}")
             self.teams = data['teams']
             if hasattr(self, 'teams_list'):
@@ -194,6 +208,12 @@ class BilgiYarismasi:
             background=self.theme["bg"],
             foreground=self.theme["fg"],
             fieldbackground=self.theme["bg"])
+        
+        # Doğru cevap stili
+        self.style.configure("Correct.TRadiobutton",
+            background=self.theme["bg"],
+            foreground="green",
+            font=("Helvetica", 10, "bold"))
         
         self.root.configure(bg=self.theme["bg"])
 
@@ -357,12 +377,28 @@ class BilgiYarismasi:
         self.update_timer()
 
     def update_timer(self):
-        """Zamanlayıcıyı günceller."""
-        if self.time_left > 0:
-            self.time_left -= 1
+        """Süre sayacını günceller."""
+        if hasattr(self, 'timer_label') and self.remaining_time > 0:
+            self.timer_label.config(text=f"Süre: {self.remaining_time}")
+            self.remaining_time -= 1
             self.root.after(1000, self.update_timer)
-        else:
-            self.check_answer(None)  # Süre dolduğunda otomatik olarak yanlış cevap
+        elif self.remaining_time <= 0:
+            # Süre dolduğunda sunucuya bildir
+            self.sio.emit('time_up')
+            # Cevap seçeneklerini devre dışı bırak ve doğru cevabı yeşil yap
+            for widget in self.root.winfo_children():
+                if isinstance(widget, ttk.Frame):
+                    for child in widget.winfo_children():
+                        if isinstance(child, ttk.Frame):
+                            for grandchild in child.winfo_children():
+                                if isinstance(grandchild, ttk.Radiobutton):
+                                    grandchild.configure(state='disabled')
+                                    # Doğru cevabı yeşil yap
+                                    if grandchild['text'].startswith(self.current_correct_answer):
+                                        grandchild.configure(style='Correct.TRadiobutton')
+            
+            # 7 saniye bekle ve sonraki soruya geç
+            self.root.after(7000, self.sio.emit, 'next_question')
 
     def check_answer(self, selected_answer):
         """Cevabı kontrol eder."""
@@ -385,7 +421,7 @@ class BilgiYarismasi:
         else:
             self.show_game_over()
 
-    def show_question(self):
+    def show_question(self, question_data):
         """Soruyu gösterir."""
         # Mevcut widget'ları temizle
         for widget in self.root.winfo_children():
@@ -399,39 +435,53 @@ class BilgiYarismasi:
         info_frame = ttk.Frame(main_frame)
         info_frame.pack(fill="x", pady=10)
         
-        # Skor etiketi
-        score_label = ttk.Label(info_frame, text=f"Skor: {self.score}", font=("Helvetica", 12))
-        score_label.pack(side="right", padx=5)
+        # Soru numarası ve süre
+        self.remaining_time = question_data.get('time', 30)  # Varsayılan 30 saniye
+        self.timer_label = ttk.Label(info_frame, text=f"Süre: {self.remaining_time}", font=("Helvetica", 12))
+        self.timer_label.pack(side="right", padx=5)
         
-        # Soru numarası
-        question_num_label = ttk.Label(info_frame, 
-            text=f"Soru {self.current_question + 1}/{len(self.questions)}", 
-            font=("Helvetica", 12))
-        question_num_label.pack(side="left", padx=5)
-        
-        # Soru çerçevesi
-        question_frame = ttk.Frame(main_frame)
-        question_frame.pack(fill="both", expand=True, pady=20)
+        question_num = ttk.Label(info_frame, text=f"Soru {question_data['question_number']}", font=("Helvetica", 12))
+        question_num.pack(side="left", padx=5)
         
         # Soru metni
-        question_text = ttk.Label(question_frame, 
-            text=self.questions[self.current_question]['question'],
-            wraplength=600, font=("Helvetica", 14))
-        question_text.pack(pady=20)
+        question_frame = ttk.Frame(main_frame)
+        question_frame.pack(fill="both", expand=True, pady=10)
         
-        # Cevap butonları
-        options = self.questions[self.current_question]['options']
-        random.shuffle(options)
+        question_text = tk.Text(question_frame, height=4, wrap="word", font=("Helvetica", 12))
+        question_text.insert("1.0", question_data['question'])
+        question_text.configure(state="disabled")
+        question_text.pack(fill="both", expand=True, padx=5)
         
-        for option in options:
-            option_btn = ttk.Button(question_frame, text=option,
-                                  command=lambda o=option: self.check_answer(o))
-            option_btn.pack(pady=5, padx=20, fill="x")
+        # Doğru cevabı sakla
+        self.current_correct_answer = question_data['correct_answer']
         
-        # Zamanlayıcı başlat
-        self.time_left = self.question_time
-        self.timer_running = True
+        # Cevap seçenekleri
+        answers_frame = ttk.Frame(main_frame)
+        answers_frame.pack(fill="both", expand=True, pady=10)
+        
+        self.answer_var = tk.StringVar()
+        for i, answer in enumerate(['A', 'B', 'C', 'D']):
+            answer_text = question_data[f'answer_{answer.lower()}']
+            rb = ttk.Radiobutton(
+                answers_frame,
+                text=f"{answer}) {answer_text}",
+                value=answer,
+                variable=self.answer_var,
+                command=self.submit_answer
+            )
+            rb.pack(anchor="w", pady=5)
+        
+        # Süre sayacını başlat
         self.update_timer()
+
+    def submit_answer(self):
+        """Cevabı gönderir."""
+        answer = self.answer_var.get()
+        if answer:
+            self.sio.emit('submit_answer', {
+                'answer': answer,
+                'team_name': self.team_name.get()
+            })
 
     def show_game_over(self):
         """Oyun sonu ekranını gösterir."""
@@ -467,6 +517,30 @@ class BilgiYarismasi:
                 status = "Hazır" if team.get('ready', False) else "Hazır Değil"
                 host_mark = "👑 " if team.get('is_host', False) else ""
                 self.teams_list.insert("", "end", values=(f"{host_mark}{team['name']}", status))
+
+    def show_results(self, correct_answer, scores):
+        """Sonuçları gösterir."""
+        # Sonuç penceresi
+        result_window = tk.Toplevel(self.root)
+        result_window.title("Sonuçlar")
+        result_window.geometry("400x300")
+        
+        # Doğru cevap
+        correct_label = ttk.Label(result_window, text=f"Doğru Cevap: {correct_answer}", font=("Helvetica", 14, "bold"))
+        correct_label.pack(pady=10)
+        
+        # Skor tablosu
+        scores_frame = ttk.Frame(result_window)
+        scores_frame.pack(fill="both", expand=True, pady=10)
+        
+        # Skor tablosu başlığı
+        scores_label = ttk.Label(scores_frame, text="Skor Tablosu", font=("Helvetica", 12, "bold"))
+        scores_label.pack(pady=5)
+        
+        # Skorları listele
+        for team_name, score in scores.items():
+            team_label = ttk.Label(scores_frame, text=f"{team_name}: {score} puan")
+            team_label.pack(pady=2)
 
 if __name__ == "__main__":
     root = tk.Tk()
