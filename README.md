@@ -1,3 +1,35 @@
+
+ÖNCE SERVER.PY DOSYASINI ÇALIŞTIR. DAHA SONRA CLİENT.PY CLİENT DOSYASINI CURSOR ÜZERİNDEN AÇMAYIN MASAÜSTÜNE ATIP DOSYA KONUMUNA CMD EKRANINDAN AÇIN ÖRNEK 
+cd\Users\emrea\Desktop
+python client.py 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Bilgi Yarışması Uygulaması
 
 Bu proje, gerçek zamanlı çok oyunculu bir bilgi yarışması uygulamasıdır.
